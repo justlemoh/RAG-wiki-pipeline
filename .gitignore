@@ -1,0 +1,25 @@
+# Environment variables
+.env
+
+# Python caching and compiled files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Local virtual environments
+.venv/
+venv/
+ENV/
+env/
+
+# Generated vectors and datasets (optional but recommended to keep repo light)
+*.npy
+data/dense_vectors.npy
+data/dense_meta.parquet
+data/documents_cleaned.parquet
+data/questions_cleaned.parquet
+data/documents_chunked.parquet
+
+# IDE configs
+.vscode/
+.idea/
