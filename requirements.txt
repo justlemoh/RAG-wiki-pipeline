@@ -4,4 +4,4 @@ pandas
 pyarrow
 google-genai
 python-dotenv
-sentence-transformers
+fastembed

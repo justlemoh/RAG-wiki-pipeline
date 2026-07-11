@@ -9,12 +9,12 @@ import os
 import argparse
 import numpy as np
 import pandas as pd
-from sentence_transformers import SentenceTransformer
+from fastembed import TextEmbedding
 
 DATA_DIR = 'data'
 VECTORS_PATH = os.path.join(DATA_DIR, 'dense_vectors.npy')
 META_PATH = os.path.join(DATA_DIR, 'dense_meta.parquet')
-MODEL_NAME = 'all-MiniLM-L6-v2'
+MODEL_NAME = 'sentence-transformers/all-MiniLM-L6-v2'
 
 # Global variables for caching model and data
 _model = None
@@ -23,7 +23,7 @@ _meta = None
 
 
 def load_retrieval_resources():
-    """Load the sentence transformer model, vector matrix, and metadata."""
+    """Load the fastembed model, vector matrix, and metadata."""
     global _model, _vectors, _meta
 
     if _model is not None and _vectors is not None and _meta is not None:
@@ -35,8 +35,8 @@ def load_retrieval_resources():
             f"to generate {VECTORS_PATH} and {META_PATH}."
         )
 
-    # Load model
-    _model = SentenceTransformer(MODEL_NAME)
+    # Load model (fastembed uses ONNX - no PyTorch required)
+    _model = TextEmbedding(model_name=MODEL_NAME)
 
     # Load vectors (n_chunks x 384)
     _vectors = np.load(VECTORS_PATH)
@@ -54,8 +54,8 @@ def retrieve(query, k=3):
     """
     model, vectors, meta = load_retrieval_resources()
 
-    # Encode query and normalize to calculate cosine similarity via dot product
-    query_vector = model.encode(query, normalize_embeddings=True)
+    # Encode query using fastembed (returns a generator of numpy arrays)
+    query_vector = list(model.embed([query]))[0]
 
     # Compute dot product against all rows
     scores = np.dot(vectors, query_vector)
