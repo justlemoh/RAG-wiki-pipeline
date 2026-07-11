@@ -16,7 +16,7 @@ from retrieve import retrieve
 # Load environment variables from .env file
 load_dotenv()
 
-MODEL_NAME = 'gemini-2.5-flash'
+MODEL_NAME = 'gemini-3.5-flash'
 
 
 def get_gemini_client():
