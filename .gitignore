@@ -14,8 +14,8 @@ env/
 
 # Generated vectors and datasets (optional but recommended to keep repo light)
 *.npy
-data/dense_vectors.npy
-data/dense_meta.parquet
+!data/dense_vectors.npy
+# dense_meta.parquet is needed at runtime — DO NOT ignore
 data/documents_cleaned.parquet
 data/questions_cleaned.parquet
 data/documents_chunked.parquet
