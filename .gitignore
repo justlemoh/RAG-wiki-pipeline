@@ -23,3 +23,6 @@ data/documents_chunked.parquet
 # IDE configs
 .vscode/
 .idea/
+
+# Local logs
+uvicorn_run.log

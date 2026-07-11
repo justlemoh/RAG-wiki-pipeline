@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RAG Wiki Explorer</title>
+    <!-- Google Fonts Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Main Chat Area -->
+        <main class="chat-area">
+            <header class="chat-header">
+                <div class="header-info">
+                    <div class="logo">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round" />
+                            <path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round" />
+                            <path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round" />
+                        </svg>
+                    </div>
+                    <div>
+                        <h1>RAG Wiki Explorer</h1>
+
+                    </div>
+                </div>
+                <button class="toggle-sources-btn" id="toggleSourcesBtn" aria-label="Toggle retrieved sources">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M4 6H20M4 12H20M4 18H20" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                            stroke-linejoin="round" />
+                    </svg>
+                    <span>Sources</span>
+                </button>
+            </header>
+
+            <div class="chat-messages" id="chatMessages">
+                <!-- Welcome Message -->
+                <div class="message system-message">
+                    <div class="avatar assistant-avatar">AI</div>
+                    <div class="message-bubble-wrapper">
+                        <div class="message-bubble">
+                            <p>Hello! Ask me any question, and I'll answer it using the retrieved Wikipedia database
+                                context. You'll see the exact sources I use in the right panel.</p>
+                        </div>
+                        <span class="message-time" id="systemTime"></span>
+                    </div>
+                </div>
+            </div>
+
+            <footer class="chat-footer">
+                <form class="chat-input-form" id="chatForm">
+                    <input type="text" id="userInput" placeholder="Ask a question..." autocomplete="off" required>
+                    <button type="submit" class="send-btn" id="sendBtn" aria-label="Send query">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M22 2L11 13M22 2L15 22L11 13M11 13L2 9L22 2" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                    </button>
+                </form>
+            </footer>
+        </main>
+
+        <!-- Sidebar / Sources Panel -->
+        <aside class="sources-panel" id="sourcesPanel">
+            <div class="sources-header">
+                <h2>Retrieved Context</h2>
+                <button class="close-sources-btn" id="closeSourcesBtn" aria-label="Close sources panel">&times;</button>
+            </div>
+            <div class="sources-list" id="sourcesList">
+                <div class="empty-sources-state">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 6.25V12M12 12V17.75M12 12H6.25M12 12H17.75" stroke="currentColor"
+                            stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                    <p>No query run yet.</p>
+                    <span>Ask a question in the chat to see the retrieved Wikipedia document segments.</span>
+                </div>
+            </div>
+        </aside>
+    </div>
+
+    <script src="/static/app.js"></script>
+</body>
+
+</html>
