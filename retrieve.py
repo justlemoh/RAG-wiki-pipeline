@@ -1,97 +1,83 @@
 """
 Retrieval Module for RAG Wiki Pipeline
 ======================================
-Loads pre-computed dense embeddings and performs semantic search using
-cosine similarity.
+Queries Qdrant Cloud for the top-k most semantically similar document
+chunks to the given query, using fastembed for query encoding.
 """
 
 import os
 import argparse
-import numpy as np
-import pandas as pd
-from fastembed import TextEmbedding
+from dotenv import load_dotenv
+from qdrant_client import QdrantClient
 
-DATA_DIR = 'data'
-VECTORS_PATH = os.path.join(DATA_DIR, 'dense_vectors.npy')
-META_PATH = os.path.join(DATA_DIR, 'dense_meta.parquet')
+load_dotenv()
+
+COLLECTION_NAME = 'wiki_chunks'
 MODEL_NAME = 'sentence-transformers/all-MiniLM-L6-v2'
 
-# Global variables for caching model and data
-_model = None
-_vectors = None
-_meta = None
+# Cached client (initialized once per process)
+_client = None
 
 
-def load_retrieval_resources():
-    """Load the fastembed model, vector matrix, and metadata."""
-    global _model, _vectors, _meta
+def get_qdrant_client():
+    """Initialize and cache the Qdrant client with fastembed model."""
+    global _client
+    if _client is not None:
+        return _client
 
-    if _model is not None and _vectors is not None and _meta is not None:
-        return _model, _vectors, _meta
+    qdrant_url = os.getenv("QDRANT_URL")
+    qdrant_api_key = os.getenv("QDRANT_API_KEY")
 
-    if not os.path.exists(VECTORS_PATH) or not os.path.exists(META_PATH):
-        raise FileNotFoundError(
-            f"Embedding files not found. Make sure you ran embedding.py "
-            f"to generate {VECTORS_PATH} and {META_PATH}."
+    if not qdrant_url or not qdrant_api_key:
+        raise EnvironmentError(
+            "QDRANT_URL and QDRANT_API_KEY must be set in your environment or .env file."
         )
 
-    # Load model (fastembed uses ONNX - no PyTorch required)
-    _model = TextEmbedding(model_name=MODEL_NAME)
-
-    # Load vectors (n_chunks x 384)
-    _vectors = np.load(VECTORS_PATH)
-
-    # Load metadata dataframe (doc_id, chunk_id, document)
-    _meta = pd.read_parquet(META_PATH)
-
-    return _model, _vectors, _meta
+    _client = QdrantClient(url=qdrant_url, api_key=qdrant_api_key)
+    _client.set_model(MODEL_NAME)
+    return _client
 
 
 def retrieve(query, k=3):
     """
-    Search the document chunks for the top-k most similar to the query.
-    Returns a list of dicts containing: doc_id, chunk_id, document text, and similarity score.
+    Search Qdrant Cloud for the top-k most similar chunks to the query.
+    Returns a list of dicts: doc_id, chunk_id, document text, similarity score.
     """
-    model, vectors, meta = load_retrieval_resources()
+    client = get_qdrant_client()
 
-    # Encode query using fastembed (returns a generator of numpy arrays)
-    query_vector = list(model.embed([query]))[0]
+    results = client.query(
+        collection_name=COLLECTION_NAME,
+        query_text=query,
+        limit=k,
+    )
 
-    # Compute dot product against all rows
-    scores = np.dot(vectors, query_vector)
-
-    # Get the top-k indices
-    top_indices = np.argsort(scores)[::-1][:k]
-
-    results = []
-    for idx in top_indices:
-        row = meta.iloc[idx]
-        results.append({
-            'doc_id': int(row['doc_id']),
-            'chunk_id': int(row['chunk_id']),
-            'document': row['document'],
-            'score': float(scores[idx]),
-        })
-
-    return results
+    return [
+        {
+            'doc_id': r.metadata.get('doc_id'),
+            'chunk_id': r.metadata.get('chunk_id'),
+            'document': r.document,
+            'score': float(r.score),
+        }
+        for r in results
+    ]
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Semantic Search Retrieval for RAG Wiki Pipeline")
+    parser = argparse.ArgumentParser(description="Semantic Search — Qdrant Cloud")
     parser.add_argument("--query", type=str, help="The query string to search for")
     parser.add_argument("-k", type=int, default=3, help="Number of results to retrieve (default: 3)")
     args = parser.parse_args()
 
-    # Load resources early
-    print("Loading index resources...")
+    print("Connecting to Qdrant Cloud...")
     try:
-        load_retrieval_resources()
+        get_qdrant_client()
+        print("  Connected.\n")
     except Exception as e:
         print(f"Error: {e}")
         return
 
     if args.query:
-        print(f"\nSearching for: '{args.query}' (k={args.k})")
+        print(f"Searching for: '{args.query}' (k={args.k})")
         results = retrieve(args.query, k=args.k)
         for i, res in enumerate(results, 1):
             print("-" * 60)
@@ -100,8 +86,7 @@ def main():
             print(res['document'])
         print("-" * 60)
     else:
-        # Interactive loop
-        print("\nEntering interactive mode. Type 'exit' or 'quit' to stop.")
+        print("Entering interactive mode. Type 'exit' or 'quit' to stop.")
         while True:
             try:
                 query = input("\nQuery > ").strip()
@@ -109,7 +94,6 @@ def main():
                     continue
                 if query.lower() in ['exit', 'quit']:
                     break
-
                 results = retrieve(query, k=args.k)
                 for i, res in enumerate(results, 1):
                     print("-" * 60)

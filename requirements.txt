@@ -4,4 +4,4 @@ pandas
 pyarrow
 google-genai
 python-dotenv
-fastembed
+qdrant-client[fastembed]
