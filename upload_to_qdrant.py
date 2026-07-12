@@ -24,6 +24,7 @@ import os
 import pandas as pd
 from dotenv import load_dotenv
 from qdrant_client import QdrantClient
+from qdrant_client.models import Distance, VectorParams, PointStruct, Document
 
 load_dotenv()
 
@@ -32,6 +33,7 @@ INPUT = os.path.join(DATA_DIR, 'documents_chunked.parquet')
 COLLECTION_NAME = 'wiki_chunks'
 # all-MiniLM-L6-v2 via fastembed (384-dim, fast, no PyTorch needed)
 MODEL_NAME = 'sentence-transformers/all-MiniLM-L6-v2'
+VECTOR_SIZE = 384
 BATCH_SIZE = 64
 
 
@@ -57,32 +59,46 @@ def main():
     df = pd.read_parquet(INPUT)
     print(f"  Chunks: {len(df):,} rows")
 
-    # Connect to Qdrant Cloud and set fastembed model
+    # Connect to Qdrant Cloud
     print(f"\nConnecting to Qdrant Cloud ({qdrant_url})...")
     client = QdrantClient(url=qdrant_url, api_key=qdrant_api_key)
-    client.set_model(MODEL_NAME)
     print(f"  Embedding model : {MODEL_NAME}")
 
-    # Delete existing collection if it exists (clean re-upload)
-    existing = [c.name for c in client.get_collections().collections]
-    if COLLECTION_NAME in existing:
-        print(f"\n  [INFO] Collection '{COLLECTION_NAME}' already exists — deleting and re-creating.")
+    # Delete and recreate the collection (clean re-upload)
+    if client.collection_exists(COLLECTION_NAME):
+        print(f"\n  [INFO] Collection '{COLLECTION_NAME}' exists — deleting and re-creating.")
         client.delete_collection(COLLECTION_NAME)
 
-    # Upload in batches (client.add creates collection automatically on first call)
+    client.create_collection(
+        collection_name=COLLECTION_NAME,
+        vectors_config=VectorParams(size=VECTOR_SIZE, distance=Distance.COSINE),
+    )
+    print(f"  Collection '{COLLECTION_NAME}' created.")
+
+    # Build document and metadata lists
     documents = df['document'].tolist()
     metadata = [
         {'doc_id': int(row['doc_id']), 'chunk_id': int(row['chunk_id'])}
         for _, row in df.iterrows()
     ]
 
-    print(f"\nUploading {len(documents):,} chunks to '{COLLECTION_NAME}' (batch_size={BATCH_SIZE})...")
+    # Upload in batches
+    print(f"\nUploading {len(documents):,} chunks (batch_size={BATCH_SIZE})...")
     for start in range(0, len(documents), BATCH_SIZE):
         end = min(start + BATCH_SIZE, len(documents))
-        client.add(
+        batch_docs = documents[start:end]
+        batch_meta = metadata[start:end]
+
+        client.upsert(
             collection_name=COLLECTION_NAME,
-            documents=documents[start:end],
-            metadata=metadata[start:end],
+            points=[
+                PointStruct(
+                    id=start + i,
+                    vector=Document(text=doc, model=MODEL_NAME),
+                    payload={**meta, 'document': doc},
+                )
+                for i, (doc, meta) in enumerate(zip(batch_docs, batch_meta))
+            ],
         )
         print(f"  [{end:>5}/{len(documents)}] uploaded", end='\r')
 

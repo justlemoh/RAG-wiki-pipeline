@@ -9,6 +9,7 @@ import os
 import argparse
 from dotenv import load_dotenv
 from qdrant_client import QdrantClient
+from qdrant_client.models import Document
 
 load_dotenv()
 
@@ -20,7 +21,7 @@ _client = None
 
 
 def get_qdrant_client():
-    """Initialize and cache the Qdrant client with fastembed model."""
+    """Initialize and cache the Qdrant client."""
     global _client
     if _client is not None:
         return _client
@@ -34,7 +35,6 @@ def get_qdrant_client():
         )
 
     _client = QdrantClient(url=qdrant_url, api_key=qdrant_api_key)
-    _client.set_model(MODEL_NAME)
     return _client
 
 
@@ -45,20 +45,20 @@ def retrieve(query, k=3):
     """
     client = get_qdrant_client()
 
-    results = client.query(
+    results = client.query_points(
         collection_name=COLLECTION_NAME,
-        query_text=query,
+        query=Document(text=query, model=MODEL_NAME),
         limit=k,
     )
 
     return [
         {
-            'doc_id': r.metadata.get('doc_id'),
-            'chunk_id': r.metadata.get('chunk_id'),
-            'document': r.document,
-            'score': float(r.score),
+            'doc_id': p.payload.get('doc_id'),
+            'chunk_id': p.payload.get('chunk_id'),
+            'document': p.payload.get('document'),
+            'score': float(p.score),
         }
-        for r in results
+        for p in results.points
     ]
 
 

@@ -1,7 +1,7 @@
 import os
 import sys
 
-# Add project root to sys.path so imports work correctly on Vercel
+# Add project root to sys.path so imports work correctly on Render
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from fastapi import FastAPI, HTTPException
@@ -15,7 +15,7 @@ from rag_query import run_rag_pipeline
 
 app = FastAPI(title="RAG Wiki Query Pipeline")
 
-# Mount static folder (paths are relative to the project root on Vercel)
+# Mount static folder (paths are relative to the project root on Render)
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 class QueryRequest(BaseModel):
