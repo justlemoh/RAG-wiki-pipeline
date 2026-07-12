@@ -11,7 +11,10 @@ import sys
 from dotenv import load_dotenv
 from google import genai
 from google.genai.errors import APIError
-from retrieve import retrieve
+# Add project root to sys.path so imports work when running directly
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from rag.retrieve import retrieve
 
 # Load environment variables from .env file
 load_dotenv()

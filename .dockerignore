@@ -16,13 +16,9 @@ data/
 plots/
 *.md
 
-# Data pipeline scripts (run locally to build the DB, not needed on server)
-clean_data.py
-chunking.py
-embedding.py
-upload_to_qdrant.py
-eda.py
-evaluate.py
+# Data pipeline and evaluation directories (not needed on production server)
+pipeline/
+evaluation/
 
 # IDE
 .vscode/

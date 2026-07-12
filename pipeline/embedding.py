@@ -27,9 +27,9 @@ import pandas as pd
 from fastembed import TextEmbedding
 
 DATA_DIR = 'data'
-INPUT = os.path.join(DATA_DIR, 'documents_chunked.parquet')
-VECTORS_OUTPUT = os.path.join(DATA_DIR, 'dense_vectors.npy')
-META_OUTPUT = os.path.join(DATA_DIR, 'dense_meta.parquet')
+INPUT = os.path.join(DATA_DIR, 'clean', 'documents_chunked.parquet')
+VECTORS_OUTPUT = os.path.join(DATA_DIR, 'embedding', 'dense_vectors.npy')
+META_OUTPUT = os.path.join(DATA_DIR, 'embedding', 'dense_meta.parquet')
 
 # all-MiniLM-L6-v2 via fastembed: 384-dim, fast, no PyTorch needed.
 MODEL_NAME = 'sentence-transformers/all-MiniLM-L6-v2'
@@ -38,12 +38,14 @@ BATCH_SIZE = 64
 
 def ensure_input_file():
     """Locate documents_chunked.parquet or raise a clear error."""
-    os.makedirs(DATA_DIR, exist_ok=True)
+    os.makedirs(os.path.dirname(INPUT), exist_ok=True)
+    os.makedirs(os.path.dirname(VECTORS_OUTPUT), exist_ok=True)
     if os.path.exists(INPUT):
         return
 
     candidates = [
         'documents_chunked.parquet',
+        os.path.join(DATA_DIR, 'clean', 'documents_chunked.parquet'),
         os.path.join(DATA_DIR, 'documents_chunked (1).parquet'),
         'documents_chunked (1).parquet',
     ]

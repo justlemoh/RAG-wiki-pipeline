@@ -10,8 +10,8 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 import uvicorn
 
-# Import run_rag_pipeline from rag_query
-from rag_query import run_rag_pipeline
+# Import run_wiki_agent from agents
+from agents.wiki_agent import run_wiki_agent
 
 app = FastAPI(title="RAG Wiki Query Pipeline")
 
@@ -31,7 +31,7 @@ async def query_rag(req: QueryRequest):
     if not req.query.strip():
         raise HTTPException(status_code=400, detail="Query cannot be empty")
     try:
-        answer, chunks = run_rag_pipeline(req.query, k=req.k)
+        answer, chunks = run_wiki_agent(req.query)
         return {
             "answer": answer,
             "chunks": chunks

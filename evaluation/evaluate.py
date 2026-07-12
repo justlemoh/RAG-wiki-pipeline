@@ -12,13 +12,17 @@ import pandas as pd
 import numpy as np
 from tqdm import tqdm
 from dotenv import load_dotenv
-from retrieve import retrieve
-from rag_query import run_rag_pipeline
+import sys
+# Add project root to sys.path so imports work when running directly
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from rag.retrieve import retrieve
+from rag.rag_query import run_rag_pipeline
 
 # Load environment variables from .env file
 load_dotenv()
 
-QUESTIONS_PATH = 'data/questions_cleaned.parquet'
+QUESTIONS_PATH = 'data/clean/questions_cleaned.parquet'
 SAMPLE_SIZE = 40  # Sample size for end-to-end LLM generation evaluation
 
 

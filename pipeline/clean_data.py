@@ -9,10 +9,10 @@ import shutil
 import pandas as pd
 
 DATA_DIR = 'data'
-DOC_INPUT = os.path.join(DATA_DIR, 'documents.parquet')
-Q_INPUT = os.path.join(DATA_DIR, 'questions.parquet')
-DOC_OUTPUT = os.path.join(DATA_DIR, 'documents_cleaned.parquet')
-Q_OUTPUT = os.path.join(DATA_DIR, 'questions_cleaned.parquet')
+DOC_INPUT = os.path.join(DATA_DIR, 'raw', 'documents.parquet')
+Q_INPUT = os.path.join(DATA_DIR, 'raw', 'questions.parquet')
+DOC_OUTPUT = os.path.join(DATA_DIR, 'clean', 'documents_cleaned.parquet')
+Q_OUTPUT = os.path.join(DATA_DIR, 'clean', 'questions_cleaned.parquet')
 REPORT_OUTPUT = 'Cleaning_Report.md'
 
 MIN_WORD_COUNT = 5
@@ -36,8 +36,9 @@ def ensure_input_files():
 
         candidates = [
             target_name,                                   # ./documents.parquet
+            os.path.join(DATA_DIR, 'raw', target_name),
             os.path.join(DATA_DIR, target_name),
-            os.path.join(DATA_DIR, target_name.replace('.parquet', ' (1).parquet')),
+            os.path.join(DATA_DIR, 'raw', target_name.replace('.parquet', ' (1).parquet')),
             target_name.replace('.parquet', ' (1).parquet'),
         ]
         found = next((c for c in candidates if os.path.exists(c)), None)
@@ -49,7 +50,7 @@ def ensure_input_files():
         else:
             raise FileNotFoundError(
                 f"Could not find '{target_name}' anywhere. Looked in: {candidates}. "
-                f"Place documents.parquet and questions.parquet in the 'data/' "
+                f"Place documents.parquet and questions.parquet in the 'data/raw/' "
                 f"folder next to this script before running it."
             )
 

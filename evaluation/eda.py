@@ -16,8 +16,8 @@ os.makedirs('plots', exist_ok=True)
 
 # 1. Load data
 print("Loading data...")
-df_doc = pd.read_parquet('data/documents.parquet')
-df_q = pd.read_parquet('data/questions.parquet')
+df_doc = pd.read_parquet('data/raw/documents.parquet')
+df_q = pd.read_parquet('data/raw/questions.parquet')
 
 # 2. Basic dataset summaries
 doc_info = {

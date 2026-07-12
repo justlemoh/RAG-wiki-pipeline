@@ -29,7 +29,7 @@ from qdrant_client.models import Distance, VectorParams, PointStruct, Document
 load_dotenv()
 
 DATA_DIR = 'data'
-INPUT = os.path.join(DATA_DIR, 'documents_chunked.parquet')
+INPUT = os.path.join(DATA_DIR, 'clean', 'documents_chunked.parquet')
 COLLECTION_NAME = 'wiki_chunks'
 # all-MiniLM-L6-v2 via fastembed (384-dim, fast, no PyTorch needed)
 MODEL_NAME = 'sentence-transformers/all-MiniLM-L6-v2'

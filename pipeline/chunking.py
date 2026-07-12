@@ -21,8 +21,8 @@ import shutil
 import pandas as pd
 
 DATA_DIR = 'data'
-INPUT = os.path.join(DATA_DIR, 'documents_cleaned.parquet')
-OUTPUT = os.path.join(DATA_DIR, 'documents_chunked.parquet')
+INPUT = os.path.join(DATA_DIR, 'clean', 'documents_cleaned.parquet')
+OUTPUT = os.path.join(DATA_DIR, 'clean', 'documents_chunked.parquet')
 REPORT_OUTPUT = 'Chunking_Report.md'
 
 LONG_DOC_THRESHOLD = 200   # words - docs at or below this stay as one chunk
@@ -32,18 +32,16 @@ OVERLAP_WORDS = 30         # word overlap between consecutive chunks
 
 def ensure_input_file():
     """
-    Make sure documents_cleaned.parquet exists inside DATA_DIR. This is the
-    OUTPUT of the cleaning step (Step 1) - if it's missing, the cleaning
-    pipeline either wasn't run yet or saved somewhere unexpected. Look in a
-    few likely spots before giving up, and give a clear error either way.
+    Make sure documents_cleaned.parquet exists.
     """
-    os.makedirs(DATA_DIR, exist_ok=True)
+    os.makedirs(os.path.dirname(INPUT), exist_ok=True)
     if os.path.exists(INPUT):
         return
 
     candidates = [
-        'documents_cleaned.parquet',                              # ./documents_cleaned.parquet
-        os.path.join(DATA_DIR, 'documents_cleaned (1).parquet'),  # duplicate-upload naming
+        'documents_cleaned.parquet',
+        os.path.join(DATA_DIR, 'clean', 'documents_cleaned.parquet'),
+        os.path.join(DATA_DIR, 'documents_cleaned (1).parquet'),
         'documents_cleaned (1).parquet',
     ]
     found = next((c for c in candidates if os.path.exists(c)), None)
