@@ -40,9 +40,14 @@ def evaluate_retrieval(df_q, k_values=[1, 3, 5]):
     Evaluate retrieval on Free Text questions.
     Checks if the normalized ground truth answer is present as a substring
     in the retrieved document chunks.
+
+    Runs two passes:
+      1. Without reranking (pure vector similarity from Qdrant)
+      2. With cross-encoder reranking
+    Prints a side-by-side comparison table.
     """
     print("\n--- Evaluating Retrieval Module (Free-Text Questions only) ---")
-    
+
     # Filter to free-text questions (excluding yes/no answers as they are too common)
     df_free = df_q[~df_q['ground_truth'].isin(['yes', 'no'])].copy()
     total_free = len(df_free)
@@ -52,35 +57,57 @@ def evaluate_retrieval(df_q, k_values=[1, 3, 5]):
         print("No free-text questions found for evaluation.")
         return {}
 
-    hits = {k: 0 for k in k_values}
-    
-    # Loop over all free-text questions
-    for _, row in tqdm(df_free.iterrows(), total=total_free, desc="Retrieving"):
-        q = row['question']
-        gt = clean_text_for_eval(row['ground_truth'])
-        
-        if not gt:
-            continue
-            
-        # Retrieve max K chunks
-        max_k = max(k_values)
-        results = retrieve(q, k=max_k)
-        
-        # Check hit for each k
-        for k in k_values:
-            retrieved_texts = [clean_text_for_eval(r['document']) for r in results[:k]]
-            if any(gt in text for text in retrieved_texts):
-                hits[k] += 1
+    # Pre-cache the reranker model before the evaluation loop so that its
+    # first-use download/initialization cost is not counted per-query.
+    from rag.retrieve import get_reranker
+    print("Pre-loading reranker model (downloads on first run)...")
+    get_reranker()
+    print("  Reranker ready.\n")
 
-    # Calculate metrics
-    metrics = {}
-    print("\nRetrieval Recall (Hit Rate) Results:")
+    all_metrics = {}
+
+    for use_rerank in [False, True]:
+        mode = "With Reranking" if use_rerank else "Without Reranking (vector only)"
+        hits = {k: 0 for k in k_values}
+
+        for _, row in tqdm(df_free.iterrows(), total=total_free, desc=f"Retrieving [{mode}]"):
+            q = row['question']
+            gt = clean_text_for_eval(row['ground_truth'])
+
+            if not gt:
+                continue
+
+            max_k = max(k_values)
+            results = retrieve(q, k=max_k, rerank=use_rerank)
+
+            for k in k_values:
+                retrieved_texts = [clean_text_for_eval(r['document']) for r in results[:k]]
+                if any(gt in text for text in retrieved_texts):
+                    hits[k] += 1
+
+        metrics = {}
+        for k in k_values:
+            recall = hits[k] / total_free
+            metrics[f"Recall@{k}"] = recall
+        all_metrics[mode] = metrics
+
+    # Print comparison table
+    print("\nRetrieval Recall (Hit Rate) Comparison:")
+    col_w = 35
+    header = f"  {'Metric':<12}" + "".join(f"  {m:<{col_w}}" for m in all_metrics)
+    print(header)
+    print("  " + "-" * (12 + (col_w + 2) * len(all_metrics)))
     for k in k_values:
-        recall = hits[k] / total_free
-        metrics[f"Recall@{k}"] = recall
-        print(f"  Recall@{k}: {recall:.2%} ({hits[k]}/{total_free})")
-        
-    return metrics
+        row_str = f"  {'Recall@' + str(k):<12}"
+        for mode, metrics in all_metrics.items():
+            val = metrics[f"Recall@{k}"]
+            cell = f"{val:.2%} ({int(val * total_free)}/{total_free})"
+            row_str += f"  {cell:<{col_w}}"
+        print(row_str)
+
+    # Return metrics for the reranked mode (primary result)
+    return all_metrics.get("With Reranking", {})
+
 
 
 def calculate_f1_score(prediction, ground_truth):
