@@ -62,7 +62,7 @@ document.addEventListener('DOMContentLoaded', () => {
             addMessage(data.answer, 'assistant');
             
             // Render retrieved sources
-            renderSources(data.chunks);
+            renderSources(data.sources || data.chunks);
 
         } catch (error) {
             console.error('Error fetching RAG query:', error);
@@ -162,8 +162,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Render retrieved sources list in side panel
-    function renderSources(chunks) {
-        if (!chunks || chunks.length === 0) {
+    function renderSources(sources) {
+        if (!sources || sources.length === 0) {
             sourcesList.innerHTML = `
                 <div class="empty-sources-state">
                     <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -177,34 +177,37 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         sourcesList.innerHTML = '';
-        chunks.forEach((chunk, index) => {
+        sources.forEach((src, index) => {
             const card = document.createElement('div');
             card.className = 'source-card';
 
-            const score = chunk.score ? chunk.score.toFixed(3) : 'N/A';
+            const score = (src.score !== undefined && src.score !== null) ? parseFloat(src.score).toFixed(3) : 'N/A';
 
-            if (chunk.source === 'web') {
-                const title = chunk.title || 'Web Result';
-                const url = chunk.url || '#';
-                const content = chunk.content || '';
+            if (src.source === 'web') {
+                const title = src.title || 'Web Result';
+                const url = src.url || '#';
+                const content = src.content || '';
                 card.innerHTML = `
                     <div class="source-meta">
-                        <span class="source-rank">Web Source #${index + 1}</span>
+                        <span class="source-rank">Source #${index + 1}</span>
+                        <span class="source-badge source-badge-web">🌐 WEB</span>
                         <span class="source-score">Score: ${score}</span>
                     </div>
                     <div class="source-doc-info">
                         <a href="${escapeHtml(url)}" target="_blank" class="source-link">${escapeHtml(title)}</a>
                     </div>
-                    <div class="source-text">"${escapeHtml(content)}"</div>
+                    <div class="source-text">"${escapeHtml(content.substring(0, 300))}${content.length > 300 ? '...' : ''}"</div>
                 `;
             } else {
+                const docText = src.document || '';
                 card.innerHTML = `
                     <div class="source-meta">
                         <span class="source-rank">Source #${index + 1}</span>
+                        <span class="source-badge source-badge-db">🗄️ DB</span>
                         <span class="source-score">Score: ${score}</span>
                     </div>
-                    <div class="source-doc-info">Doc ID: ${chunk.doc_id} • Chunk: ${chunk.chunk_id}</div>
-                    <div class="source-text">"${escapeHtml(chunk.document)}"</div>
+                    <div class="source-doc-info">Doc ID: ${src.doc_id} &bull; Chunk: ${src.chunk_id}</div>
+                    <div class="source-text">"${escapeHtml(docText.substring(0, 300))}${docText.length > 300 ? '...' : ''}"</div>
                 `;
             }
             sourcesList.appendChild(card);

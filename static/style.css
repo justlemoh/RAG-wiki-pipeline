@@ -504,3 +504,28 @@ body {
         display: block;
     }
 }
+
+/* ==========================================================================
+   Source Type Badges (DB / WEB)
+   ========================================================================== */
+.source-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+.source-badge-db {
+    background-color: #e0e7ff;
+    color: #4338ca;
+}
+
+.source-badge-web {
+    background-color: #d1fae5;
+    color: #065f46;
+}

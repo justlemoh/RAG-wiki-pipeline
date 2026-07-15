@@ -31,10 +31,11 @@ async def query_rag(req: QueryRequest):
     if not req.query.strip():
         raise HTTPException(status_code=400, detail="Query cannot be empty")
     try:
-        answer, chunks = run_wiki_agent(req.query)
+        answer, sources = run_wiki_agent(req.query)
         return {
             "answer": answer,
-            "chunks": chunks
+            "sources": sources,
+            "chunks": sources  # backward-compat alias
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
