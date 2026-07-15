@@ -412,6 +412,18 @@ body {
     margin-bottom: 8px;
 }
 
+.source-link {
+    color: var(--accent);
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.2s ease;
+}
+
+.source-link:hover {
+    text-decoration: underline;
+    color: var(--accent-hover);
+}
+
 .source-text {
     font-size: 13px;
     line-height: 1.5;

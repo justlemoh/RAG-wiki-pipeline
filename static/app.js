@@ -183,19 +183,38 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const score = chunk.score ? chunk.score.toFixed(3) : 'N/A';
 
-            card.innerHTML = `
-                <div class="source-meta">
-                    <span class="source-rank">Source #${index + 1}</span>
-                    <span class="source-score">Score: ${score}</span>
-                </div>
-                <div class="source-doc-info">Doc ID: ${chunk.doc_id} • Chunk: ${chunk.chunk_id}</div>
-                <div class="source-text">"${escapeHtml(chunk.document)}"</div>
-            `;
+            if (chunk.source === 'web') {
+                const title = chunk.title || 'Web Result';
+                const url = chunk.url || '#';
+                const content = chunk.content || '';
+                card.innerHTML = `
+                    <div class="source-meta">
+                        <span class="source-rank">Web Source #${index + 1}</span>
+                        <span class="source-score">Score: ${score}</span>
+                    </div>
+                    <div class="source-doc-info">
+                        <a href="${escapeHtml(url)}" target="_blank" class="source-link">${escapeHtml(title)}</a>
+                    </div>
+                    <div class="source-text">"${escapeHtml(content)}"</div>
+                `;
+            } else {
+                card.innerHTML = `
+                    <div class="source-meta">
+                        <span class="source-rank">Source #${index + 1}</span>
+                        <span class="source-score">Score: ${score}</span>
+                    </div>
+                    <div class="source-doc-info">Doc ID: ${chunk.doc_id} • Chunk: ${chunk.chunk_id}</div>
+                    <div class="source-text">"${escapeHtml(chunk.document)}"</div>
+                `;
+            }
             sourcesList.appendChild(card);
         });
     }
 
     function escapeHtml(text) {
+        if (text === undefined || text === null) {
+            return '';
+        }
         const map = {
             '&': '&amp;',
             '<': '&lt;',
@@ -203,6 +222,6 @@ document.addEventListener('DOMContentLoaded', () => {
             '"': '&quot;',
             "'": '&#039;'
         };
-        return text.replace(/[&<>"']/g, function(m) { return map[m]; });
+        return String(text).replace(/[&<>"']/g, function(m) { return map[m]; });
     }
 });
