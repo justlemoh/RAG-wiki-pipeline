@@ -5,3 +5,4 @@ pyarrow
 google-genai
 python-dotenv
 qdrant-client[fastembed]
+tavily-python
