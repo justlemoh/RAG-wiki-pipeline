@@ -22,7 +22,7 @@ from tools.web_tool import search_web, get_last_web_results, clear_web_results
 load_dotenv()
 
 # We use gemini-2.5-flash as it is extremely capable, fast, and supports tool use natively
-MODEL_NAME = 'gemini-2.5-flash'
+MODEL_NAME = 'gemini-3.1-flash-lite'
 
 
 def get_gemini_client():
