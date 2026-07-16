@@ -111,9 +111,22 @@ document.addEventListener('DOMContentLoaded', () => {
         const bubbleDiv = document.createElement('div');
         bubbleDiv.className = 'message-bubble';
         
-        const p = document.createElement('p');
-        p.textContent = text;
-        bubbleDiv.appendChild(p);
+        if (sender.startsWith('assistant')) {
+            // Use marked library if available for markdown formatting
+            if (typeof marked !== 'undefined') {
+                // Configure marked to break on single newlines like typical chat UI
+                marked.setOptions({ gfm: true, breaks: true });
+                bubbleDiv.innerHTML = marked.parse(text);
+            } else {
+                const p = document.createElement('p');
+                p.textContent = text;
+                bubbleDiv.appendChild(p);
+            }
+        } else {
+            const p = document.createElement('p');
+            p.textContent = text;
+            bubbleDiv.appendChild(p);
+        }
 
         const timeSpan = document.createElement('span');
         timeSpan.className = 'message-time';

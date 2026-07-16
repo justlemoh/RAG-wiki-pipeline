@@ -529,3 +529,71 @@ body {
     background-color: #d1fae5;
     color: #065f46;
 }
+
+/* ==========================================================================
+   Markdown Elements inside Message Bubbles
+   ========================================================================== */
+.message-bubble p {
+    margin-bottom: 8px;
+    line-height: 1.5;
+}
+.message-bubble p:last-child {
+    margin-bottom: 0;
+}
+.message-bubble ul, .message-bubble ol {
+    margin: 8px 0 8px 20px;
+    padding-left: 0;
+}
+.message-bubble li {
+    margin-bottom: 4px;
+    line-height: 1.5;
+}
+.message-bubble strong {
+    font-weight: 600;
+}
+.message-bubble pre {
+    background-color: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 10px;
+    margin: 8px 0;
+    overflow-x: auto;
+}
+.message-bubble code {
+    font-family: SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
+    font-size: 0.875em;
+    background-color: var(--bg-primary);
+    padding: 2px 4px;
+    border-radius: 4px;
+    color: #c7254e;
+}
+.message-bubble pre code {
+    background-color: transparent;
+    padding: 0;
+    border-radius: 0;
+    color: inherit;
+    font-size: 13px;
+}
+.message-bubble blockquote {
+    border-left: 3px solid var(--accent);
+    margin: 8px 0;
+    padding-left: 10px;
+    color: var(--text-secondary);
+    font-style: italic;
+}
+.message-bubble table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 8px 0;
+}
+.message-bubble th, .message-bubble td {
+    border: 1px solid var(--border-color);
+    padding: 6px 10px;
+    text-align: left;
+    font-size: 13px;
+}
+.message-bubble th {
+    background-color: var(--bg-primary);
+    font-weight: 600;
+}
+
