@@ -13,6 +13,9 @@ document.addEventListener('DOMContentLoaded', () => {
         systemTime.textContent = formatTime(new Date());
     }
 
+    // In-memory store for conversation history
+    let conversationHistory = [];
+
     // Toggle sources panel visibility
     toggleSourcesBtn.addEventListener('click', () => {
         sourcesPanel.classList.toggle('collapsed');
@@ -45,7 +48,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ query: query, k: 3 })
+                body: JSON.stringify({ 
+                    query: query, 
+                    history: conversationHistory,
+                    k: 3 
+                })
             });
 
             // Remove typing indicator
@@ -61,6 +68,10 @@ document.addEventListener('DOMContentLoaded', () => {
             // Add assistant response
             addMessage(data.answer, 'assistant');
             
+            // Update client-side conversation history for multi-turn conversations
+            conversationHistory.push({ role: 'user', text: query });
+            conversationHistory.push({ role: 'model', text: data.answer });
+
             // Render retrieved sources
             renderSources(data.sources || data.chunks);
 

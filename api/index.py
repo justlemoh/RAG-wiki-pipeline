@@ -18,8 +18,13 @@ app = FastAPI(title="RAG Wiki Query Pipeline")
 # Mount static folder (paths are relative to the project root on Render)
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
+class Message(BaseModel):
+    role: str  # 'user' or 'model'
+    text: str
+
 class QueryRequest(BaseModel):
     query: str
+    history: list[Message] = []
     k: int = 3
 
 @app.get("/")
@@ -31,7 +36,7 @@ async def query_rag(req: QueryRequest):
     if not req.query.strip():
         raise HTTPException(status_code=400, detail="Query cannot be empty")
     try:
-        answer, sources = run_wiki_agent(req.query)
+        answer, sources = run_wiki_agent(req.query, history=req.history)
         return {
             "answer": answer,
             "sources": sources,
@@ -39,6 +44,7 @@ async def query_rag(req: QueryRequest):
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
 
 if __name__ == "__main__":
     uvicorn.run("api.index:app", host="127.0.0.1", port=8000, reload=True)

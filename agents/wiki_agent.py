@@ -33,9 +33,10 @@ def get_gemini_client():
     return genai.Client()
 
 
-def run_wiki_agent(user_message: str) -> tuple[str, list]:
+def run_wiki_agent(user_message: str, history: list = None) -> tuple[str, list]:
     """
-    Runs the agent for a single turn. It has access to two tools:
+    Runs the agent for a turn, optionally taking history of prior conversation turns.
+    It has access to two tools:
       1. search_wikipedia — searches the local Qdrant Wikipedia database (fast, offline)
       2. search_web       — searches the internet via Tavily (for recent/uncovered topics)
 
@@ -61,9 +62,26 @@ def run_wiki_agent(user_message: str) -> tuple[str, list]:
         "If neither tool returns useful information, respond with the single word 'unanswerable'."
     )
 
-    # We use chat interface because it automatically manages function calling execution loop
+    # Process conversation history if provided
+    formatted_history = []
+    if history:
+        for msg in history:
+            role = getattr(msg, "role", msg.get("role") if isinstance(msg, dict) else None)
+            text = getattr(msg, "text", msg.get("text") if isinstance(msg, dict) else None)
+            if role and text:
+                # Map role 'assistant' or 'model' to Gemini's expected 'model'
+                gemini_role = "model" if role in ("model", "assistant") else "user"
+                formatted_history.append(
+                    types.Content(
+                        role=gemini_role,
+                        parts=[types.Part.from_text(text=text)]
+                    )
+                )
+
+    # Create the chat session with the parsed history
     chat = client.chats.create(
         model=MODEL_NAME,
+        history=formatted_history if formatted_history else None,
         config=types.GenerateContentConfig(
             system_instruction=system_instruction,
             tools=[search_wikipedia, search_web],
@@ -78,6 +96,7 @@ def run_wiki_agent(user_message: str) -> tuple[str, list]:
         return response.text.strip(), all_sources
     except Exception as e:
         return f"Error executing agent: {str(e)}", []
+
 
 
 def main():
